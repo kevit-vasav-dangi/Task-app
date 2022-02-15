@@ -1,6 +1,8 @@
 //const route = require('color-convert/route')
 const express = require('express')
+const auth = require('../middleware/auth')
 const User = require('../models/user')
+const jwt = require('jsonwebtoken')
 const router = new express.Router()
 router.post('/users',async(req,res)=>{
     const user = new User(req.body)
@@ -30,7 +32,7 @@ router.post('/users/login',async(req,res)=>{
         res.status(400).send()
     }
 })
-router.get('/users',async(req,res)=>{
+router.get('/users',auth,async(req,res)=>{
     try{
         const users = await User.find({})
         res.send(users)
