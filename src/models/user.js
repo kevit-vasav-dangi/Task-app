@@ -1,7 +1,8 @@
 const mongoose=require('mongoose')
 const validator=require('validator');
 const bcrypt = require('bcrypt')
-const jwt=require('jsonwebtoken')
+const jwt=require('jsonwebtoken');
+const Task = require('./task');
 //mongoose.connect('mongodb://127.0.0.1:27017/task-manager-api',{
     // useNewUrlParser:true,
     // useCreateIndex:true
@@ -51,6 +52,12 @@ const userSchema = new mongoose.Schema({
         }
     }]
 })
+
+userSchema.virtual('tasks',{
+    ref:'Tasks',
+    localField:'_id',
+    foreignField:'owner'
+})
 userSchema.methods.toJSON=function (){
     const user = this
     const userObject = user.toObject()
@@ -88,6 +95,12 @@ userSchema.pre('save',async function (next){
     }
     //console.log(('just before saving!'));
 
+    next()
+})
+
+userSchema.pre('remove',async function(next){
+    const user = this
+    await Task.deleteMany({owner:user._id})
     next()
 })
  const User = mongoose.model('User',userSchema)

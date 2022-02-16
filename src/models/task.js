@@ -17,7 +17,8 @@ const Task = mongoose.model('Tasks',{
     },
     owner : {
         type : mongoose.Schema.Types.ObjectId,
-        required : true
+        required : true,
+        ref:'User'
     }
 })
 // const newTask= new Task({
