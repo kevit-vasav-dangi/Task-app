@@ -6,7 +6,7 @@ const auth = async(req,res,next)=>{
         //console.log("auth req", req.body)
         const token =req.header('Authorization').replace('Bearer ','')
         //console.log("auth",token);
-        const decoded = jwt.verify(token,'atlas')
+        const decoded = jwt.verify(token,process.env.JWT_SECRET)
         //console.log('decoded',decoded);
         const user = await User.findOne({_id:decoded._id,'tokens.token':token})
         //console.log("user found", user)

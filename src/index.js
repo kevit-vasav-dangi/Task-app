@@ -9,7 +9,7 @@ const e = require('express');
 
 
 const app = express()
-const port = process.env.PORT || 3000
+const port = process.env.PORT
 
 // app.use((req,res,next)=>{
 //     // console.log(req.method,req.path);
@@ -27,14 +27,37 @@ const port = process.env.PORT || 3000
 //         next()
 //     }
 // })
+const multer = require('multer')
+const upload = multer({
+    dest:'images',
+    limits: {
+        fileSize:1000000
+    },
+    fileFilter(req,file,callback) {
+        if(!file.originalname.match(/\.(doc|docx)$/)){
+            return callback(new Error('please upload a word document'))
+        }
+    }
+})
 
+app.post('/upload',upload.single('upload'),(req,res) => {
+    res.send();
+},(error,req,res,next) => {
+    res.status(400).send({error:error.message})    
+})
+// const avatar = multer({
+//     dest:'avatar'
+// })
+// app.post('/users/me/avatar',avatar.single('avatar'),(req,res) => {
+//     res.send()
+// })
 
 app.use(express.json())
 app.use(userRouter)
 app.use(taskRouter);
 
 app.listen(port,()=>{
-    console.log('server is ready'+port);
+    console.log('server is ready '+port);
 })
 // const jwt = require('jsonwebtoken')
 // //const bcrypt = require('bcrypt')
@@ -53,13 +76,13 @@ app.listen(port,()=>{
 // }
 // myFunction()
 
-const main = async()=>{
-    //const task = await Task.findById('620cd27626fa8c5e44fa51f2')
-    //await task.populate('owner')
-    //console.log(task);
-    const user = await User.findById('620ccffd0ddeddc9586be0d8')
-    await user.populate('tasks')
-    console.log(user.tasks);
+// const main = async()=>{
+//     //const task = await Task.findById('620cd27626fa8c5e44fa51f2')
+//     //await task.populate('owner')
+//     //console.log(task);
+//     const user = await User.findById('620ccffd0ddeddc9586be0d8')
+//     //await user.populate('tasks')
+//     //console.log(user.tasks);
 
-} 
-main()
+// } 
+// main()

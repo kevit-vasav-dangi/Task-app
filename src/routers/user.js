@@ -1,8 +1,13 @@
 //const route = require('color-convert/route')
 const express = require('express')
+const multer = require('multer');
+const sharp = require('sharp')
 const auth = require('../middleware/auth')
 const User = require('../models/user')
-const jwt = require('jsonwebtoken')
+const jwt = require('jsonwebtoken');
+const {welcomeEmail} = require('../email/account')
+const {goodbyeMail} = require('../email/account')
+const route = require('color-convert/route');
 const router = new express.Router()
 
 
@@ -10,6 +15,7 @@ router.post('/users',async(req,res)=>{
     const user = new User(req.body)
     try{
         await user.save()
+        welcomeEmail(user.email,user.name)
         const token = await user.generateAuthToken()
         res.status(201).send({user,token})
     } 
@@ -80,6 +86,8 @@ router.get('/users',auth,async(req,res)=>{
 })
 
 
+
+
 router.get('/users/me',auth,async (req,res)=>{
     res.send(req.user)
 })
@@ -105,6 +113,49 @@ router.get('/users/me',auth,async (req,res)=>{
 //     //     res.status(500).send()
 //     // })
 // })
+const upload = multer({
+    limits:{
+        fileSize:1000000
+    },
+    fileFilter(req,file,callback) {
+        if(!file.originalname.match(/\.(jpg|png|jpeg|jpg)$/)){
+            return callback(new Error('plz provide image'))
+        }
+        callback(undefined,true)
+    }
+})
+router.post('/users/me/avatars',auth,upload.single('avatar'), async (req,res) => {
+    const buffer = await sharp(req.file.buffer).resize({width:250,height:250}).png().toBuffer()
+    
+    
+    req.user.avatar = buffer
+    //console.log(req.user.avatar);
+    await req.user.save()
+    res.send();
+},(error,req,res,next) => {
+    res.status(400).send({ error: error.message})
+})
+
+router.get('/users/:id/avatar',async (req , res) => {
+    //console.log("get users id avatar")
+    try{
+        const user = await User.findById(req.params.id)
+        //console.log(user);
+        if(!user || !user.avatar){
+            throw new Error('hello')
+        }
+        res.set('Content-Type', 'image/png')
+        res.send(user.avatar)
+    } catch (e){
+        res.status(404).send()
+    }
+})
+
+router.delete('/users/me/avatar',auth,async (req,res) => {
+    req.user.avatar = undefined
+    await req.user.save()
+    res.send()
+})
 
 
 router.patch('/users/me',auth,async(req,res)=>{
@@ -142,6 +193,7 @@ router.delete('/users/me',auth,async(req,res)=>{
         //     return res.status(404).send()
         // }
         await req.user.remove()
+        goodbyeMail(req.user.email,req.user.name)
         res.send(req.user)
     }catch(e){
         res.status(500).send()

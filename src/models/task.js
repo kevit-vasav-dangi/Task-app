@@ -4,8 +4,7 @@ const validator=require('validator');
 // //     // useNewUrlParser:true,
 // //     // useCreateIndex:true
 //  })
-
-const Task = mongoose.model('Tasks',{
+const taskSchema= new mongoose.Schema({
     description : {
         type : String,
         trim:true,
@@ -19,8 +18,10 @@ const Task = mongoose.model('Tasks',{
         type : mongoose.Schema.Types.ObjectId,
         required : true,
         ref:'User'
-    }
-})
+    }},
+     {timestamps:true}
+)
+const Task = mongoose.model('Tasks',taskSchema)
 // const newTask= new Task({
 //     description:'task4',
 //     //completed:22
